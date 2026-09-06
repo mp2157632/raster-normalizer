@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Raster Normalizer</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            min-height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 650px;
+            background: white;
+
+            padding: 40px;
+            border-radius: 16px;
+
+            text-align: center;
+
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .upload-box {
+            border: 2px dashed #aaa;
+            border-radius: 12px;
+
+            padding: 45px 20px;
+
+            margin-bottom: 20px;
+        }
+
+        .upload-box p {
+            margin: 10px 0;
+        }
+
+        input[type="file"] {
+            margin: 20px 0;
+        }
+
+        button {
+            border: none;
+
+            padding: 13px 28px;
+
+            border-radius: 8px;
+
+            background: #222;
+            color: white;
+
+            font-size: 16px;
+
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        #download {
+            display: none;
+
+            margin-top: 20px;
+
+            padding: 13px 25px;
+
+            background: #222;
+            color: white;
+
+            text-decoration: none;
+
+            border-radius: 8px;
+        }
+
+        .supported {
+            color: #777;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <div class="container">
+
+        <h1>Raster Normalizer</h1>
+
+        <p class="subtitle">
+            Normalize your JPG or TIFF raster easily.
+        </p>
+
+
+        <div class="upload-box">
+
+            <p>
+                Select a JPG or TIFF file
+            </p>
+
+            <input
+                type="file"
+                id="fileInput"
+                accept=".jpg,.jpeg,.tif,.tiff"
+            >
+
+            <br>
+
+            <button type="button" id="normalizeButton">
+                Normalize
+            </button>
+
+        </div>
+
+
+        <div id="status"></div>
+
+
+        <a
+            id="download"
+            href="#"
+        >
+            Download Normalized Raster
+        </a>
+
+
+        <p class="supported">
+            Supported formats: JPG, JPEG, TIFF, TIF
+        </p>
+
+    </div>
+
+
+    <script>
+
+        const fileInput =
+            document.getElementById("fileInput");
+
+        const normalizeButton =
+            document.getElementById("normalizeButton");
+
+        const status =
+            document.getElementById("status");
+
+        const download =
+            document.getElementById("download");
+
+
+        normalizeButton.addEventListener(
+            "click",
+            async function () {
+
+                const file = fileInput.files[0];
+
+
+                if (!file) {
+
+                    status.textContent =
+                        "Please select a file first.";
+
+                    return;
+                }
+
+
+                const formData =
+                    new FormData();
+
+                formData.append(
+                    "file",
+                    file
+                );
+
+
+                normalizeButton.disabled = true;
+
+                download.style.display = "none";
+
+                status.textContent =
+                    "Processing...";
+
+
+                try {
+
+                    const response =
+                        await fetch(
+                            "/normalize",
+                            {
+                                method: "POST",
+                                body: formData
+                            }
+                        );
+
+
+                    const result =
+                        await response.json();
+
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            result.error ||
+                            "Processing failed."
+                        );
+
+                    }
+
+
+                    status.textContent =
+                        "✓ " + result.message;
+
+
+                    download.href =
+                        result.download_url;
+
+
+                    download.style.display =
+                        "inline-block";
+
+
+                } catch (error) {
+
+                    status.textContent =
+                        "❌ " + error.message;
+
+                }
+
+
+                normalizeButton.disabled =
+                    false;
+
+            }
+        );
+
+    </script>
+
+</body>
+
+</html>
